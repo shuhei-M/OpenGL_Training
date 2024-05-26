@@ -11,8 +11,11 @@
 #include <cstdlib>
 #include <iostream>
 #include <vector>
+#include <memory>
 #include <GL/glew.h>
 #include <GLFW/glfw3.h>
+
+class Window;
 
 /**
  * アプリケーションクラス
@@ -22,13 +25,20 @@ class Application
 public:
 	// コンストラクタ
 	Application();
+	// デストラクタ
+	~Application();
 
-	// 初期化
-	bool tryInit();
+	// OpenGLの初期化
+	bool tryInitGL();
 	// 実行
 	void run();
 
 private:
+	// ウィンドウの初期化
+	void initWindow();
+	// シェーダの初期化
+	void initShader();
+
 	// シェーダオブジェクトのコンパイル結果を表示する
 	GLboolean printShaderInfoLog(GLuint shader, const char* str);
 	// プログラムオブジェクトのリンク結果を表示する
@@ -42,7 +52,14 @@ private:
 
 private:
 	int mTimer = 0;
-	GLFWwindow* mWindow = nullptr;
+	Window* mWindow;
+
+	// プログラムオブジェクト
+	GLuint* mProgram;
+	// uniform 変数
+	GLint* mSizeLoc;
+	GLint* mScaleLoc;
+	GLint* mLocationLoc;
 };
 
 #endif // #ifndef __APPLICATION_H_

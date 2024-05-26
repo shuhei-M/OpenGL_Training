@@ -13,5 +13,5 @@
 int main()
 {
 	Application app;
-	if (app.tryInit()) app.run();
+	if (app.tryInitGL()) app.run();
 }

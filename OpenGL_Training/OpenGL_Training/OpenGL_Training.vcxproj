@@ -71,7 +71,7 @@
   </ImportGroup>
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
-    <IncludePath>D:\OpenGL Projects\OpenGL_Training\OpenGL_Training\System\include;$(IncludePath)</IncludePath>
+    <IncludePath>D:\GitHub\shuhei-M\OpenGL_Training\OpenGL_Training\OpenGL_Training\System\include;D:\GitHub\shuhei-M\OpenGL_Training\OpenGL_Training\OpenGL_Training\Math\include;$(IncludePath)</IncludePath>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
@@ -134,10 +134,22 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="main.cpp" />
+    <ClCompile Include="Math\src\MathUtil.cpp" />
+    <ClCompile Include="Math\src\Vector3.cpp" />
     <ClCompile Include="System\src\Application.cpp" />
+    <ClCompile Include="System\src\InputSystem.cpp" />
+    <ClCompile Include="System\src\Object.cpp" />
+    <ClCompile Include="System\src\Shape.cpp" />
+    <ClCompile Include="System\src\Window.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="Math\include\MathUtil.h" />
+    <ClInclude Include="Math\include\Vector3.h" />
     <ClInclude Include="System\include\Application.h" />
+    <ClInclude Include="System\include\InputSyetem.h" />
+    <ClInclude Include="System\include\Object.h" />
+    <ClInclude Include="System\include\Shape.h" />
+    <ClInclude Include="System\include\Window.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

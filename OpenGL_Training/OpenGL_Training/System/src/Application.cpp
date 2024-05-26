@@ -10,18 +10,47 @@
 #include <string>
 #include <fstream>
 
-/**
- * 初期化
- */
-Application::Application()
+#include "InputSyetem.h"
+#include "Shape.h"
+#include "Window.h"
+
+
+ // 矩形の頂点の位置 
+constexpr Object::Vertex rectangleVertex[] =
 {
-}
+    { -0.5f, -0.5f },
+    {  0.5f, -0.5f },
+    {  0.5f,  0.5f },
+    { -0.5f,  0.5f }
+};
 
 /**
  * 初期化
  */
+Application::Application()
+    : mTimer(0), mWindow(nullptr)
+    , mProgram(nullptr)
+    , mSizeLoc(nullptr), mScaleLoc(nullptr), mLocationLoc(nullptr)
+{
+}
+
+/**
+ * デストラクタ
+ */
+Application::~Application()
+{
+    delete mWindow;
+    delete mProgram;
+    delete mSizeLoc;
+    delete mScaleLoc;
+    delete mLocationLoc;
+}
+
+/**
+ * OpenGLの初期化
+ */
 bool
-Application::tryInit()
+Application::tryInitGL()
 {
     // GLFW を初期化する
     if (glfwInit() == GL_FALSE)
@@ -40,28 +69,36 @@ Application::tryInit()
     glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
     glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
 
-    // ウィンドウを作成する
-    mWindow = glfwCreateWindow(1280, 720, "Window", NULL, NULL);
-    if (mWindow == NULL)
-    {
-        // ウィンドウが作成できなかった
-        std::cerr << "Can't create GLFW window." << std::endl;
-        return false;
-    }
-
-    // 作成したウィンドウを OpenGL の処理対象にする
-    glfwMakeContextCurrent(mWindow);
-
-    // GLEW を初期化する
-    if (glewInit() != GLEW_OK)
-    {
-        // GLEW の初期化に失敗した
-        std::cerr << "Can't initialize GLEW" << std::endl;
-        return false;
-    }
-
     // 完了
     return true;
+}
+
+/**
+ * ウィンドウの初期化
+ */
+void
+Application::initWindow()
+{
+    // ウィンドウを作成する
+    mWindow = new Window;
+
+    // 背景色を指定する
+    glClearColor(0.75f, 0.75f, 0.75f, 0.0f);
+}
+
+/**
+ * シェーダの初期化
+ */
+void
+Application::initShader()
+{
+    // プログラムオブジェクトを作成する
+    mProgram = new GLuint(loadProgram("point.vert", "point.frag"));
+
+    // uniform 変数の場所を取得する
+    mSizeLoc = new GLint(glGetUniformLocation(*mProgram, "size"));
+    mScaleLoc = new GLint(glGetUniformLocation(*mProgram, "scale"));
+    mLocationLoc = new GLint(glGetUniformLocation(*mProgram, "location"));
 }
 
 /**
@@ -70,35 +107,49 @@ Application::tryInit()
 void
 Application::run()
 {
-    // 作成したウィンドウに対する設定
-    glfwSwapInterval(1);
+    // ウィンドウの初期化
+    initWindow();
 
-    // 背景色を指定する
-    glClearColor(0.75f, 0.75f, 0.75f, 0.0f);
+    // 入力システムの初期化
+    InputSystem::init(mWindow->getWindow());
 
-    // プログラムオブジェクトを作成する
-    const GLuint program(loadProgram("point.vert", "point.frag"));
+    // シェーダーの初期化
+    initShader();
+
+    // 図形データを作成する 
+    std::unique_ptr<const Shape> shape(new Shape(2, 4, rectangleVertex));
 
     // ウィンドウが開いている間繰り返す
-    while (glfwWindowShouldClose(mWindow) == GL_FALSE)
+    while (mWindow->shouldClose() == GL_FALSE)
     {
         // ウィンドウを消去する
         glClear(GL_COLOR_BUFFER_BIT);
 
+        // 入力情報の更新
+        InputSystem::update(mWindow->getWindow());
+
+        mWindow->updateScale();
+
         // シェーダプログラムの使用開始
-        glUseProgram(program);
+        glUseProgram(*mProgram);
 
-        //
-        // ここで描画処理を行う
-        //
+        // uniform 変数に値を設定する
+        glUniform2fv(*mSizeLoc, 1, mWindow->getSize());
+        glUniform1f(*mScaleLoc, mWindow->getScale());
+        glUniform2fv(*mLocationLoc, 1, mWindow->getLocation());
 
-        // カラーバッファを入れ替える
-        glfwSwapBuffers(mWindow);
+        // 図形を描画する
+        shape->draw();
 
-        // イベントを取り出す
-        glfwWaitEvents();
+        // カラーバッファを入れ替えてイベントを取り出す
+        mWindow->swapBuffers();
     }
 }
+
+
+
+
+
 
 /**
  * シェーダオブジェクトのコンパイル結果を表示する
@@ -220,7 +271,7 @@ Application::readShaderSource(const char* name, std::vector<GLchar>& buffer)
     // ファイル名が NULL だった
     if (name == NULL) return false;
     // プロジェクトが変わった際は、適宜パスを書き換える事
-    const char* path = "D:\\OpenGL Projects\\OpenGL_Training\\OpenGL_Training\\Shader\\";
+    const char* path = "D:\\GitHub\\shuhei-M\\OpenGL_Training\\OpenGL_Training\\OpenGL_Training\\Shaders\\";
     std::string fullPath = (std::string)path + (std::string)name;
     std::ifstream file(fullPath.c_str(), std::ios::binary);
     if (file.fail())
